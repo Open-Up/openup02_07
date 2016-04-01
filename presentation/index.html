@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Open Up</title>
+
+		<meta name="description" content="Open Up : Lesson 2 DNS servers">
+		<meta name="author" content="Tellier Benoit">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+	
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+
+
+<section>
+<img data-src="img/large.png"><br/>
+<img data-src="img/openup.png">
+
+<h2>Web architecture</h2>
+<h2>with docker-compose</h2>
+
+<p>Speaker : <a>Benoit Tellier</a></p>
+
+<p><small>
+Retrieve online : <a href="https://rawgit.com/Open-Up/openup02_07/master/presentation/index.html">https://rawgit.com/Open-Up/openup02_07/master/presentation/index.html</a><br/>
+And on <a href="https://github.com/Open-Up/openup02_07/">GitHub</a></small>
+</p>
+</section>
+
+<!--------------------------------------------------
+----------------------------------------------------
+================================================----
+NEW SECTION NEW SECTION NEW SECTION NEW SECTION=----
+================================================----
+----------------------------------------------------
+---------------------------------------------------->
+
+<section>
+<h2>Objectives</h2>
+<ul>
+  <li class="fragment">Revise docker</li>
+  <li class="fragment">Use NGinx as a reverse proxy</li>
+  <li class="fragment">Use SSL with NGinx</li>
+  <li class="fragment">Use docker-compose to deploy complex architecture</li>
+</ul>
+</section>
+
+
+<!--------------------------------------------------
+----------------------------------------------------
+================================================----
+NEW SECTION NEW SECTION NEW SECTION NEW SECTION=----
+================================================----
+----------------------------------------------------
+---------------------------------------------------->
+
+<section>
+  <section>
+    <h2>Docker revisions</h2>
+    <img data-src="img/docker.jpe">
+    <p>Go on kahoot.it and wait for the game pin !</p>
+  </section>
+</section>
+
+
+<!--------------------------------------------------
+----------------------------------------------------
+================================================----
+NEW SECTION NEW SECTION NEW SECTION NEW SECTION=----
+================================================----
+----------------------------------------------------
+---------------------------------------------------->
+
+<section>
+  <section>
+    <h1>NGinx</h1>
+  </section>
+  <section>
+    <h2>What is a reverse proxy ?</h2>
+    <img data-src="img/reverseproxy.gif">
+  </section>
+
+  <section>
+    <h2>Why a reverse proxy ?</h2>
+    <ul>
+       <li class="fragment">Cache</li>
+       <li class="fragment">Compression</li>
+       <li class="fragment">SSL</li>
+       <li class="fragment">Load balancing</li>
+       <li class="fragment">Only one access point from the internet</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>NGinx</h2>
+       <img data-src="img/nginx.png">
+       <p> Web server and reverse proxy</p>
+       <p class="fragment">Lightweight and performant</p>
+       <pre class="fragment"><code>apt-get install nginx</code></pre>
+       <pre class="fragment"><code>/etc/init.d/nginx start | stop | restart</code></pre>
+       <p class="fragment">Main configuration in /etc/nginx/nginx.conf</p>
+       <div class="fragment"><a href="http://nginx.org/">documentation</a></div>
+  </section>
+
+  <section>
+    <h2>Example of configuration</h2>
+       <pre><code>user www-data ;
+worker_processes 2 ;
+
+events
+{
+    worker_connections 512 ;
+}
+
+http
+{
+   sendfile on ;
+   include nginx.conf-server ;
+   include nginx.conf-relays ;
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Configuration as webserver</h2>
+       <pre><code>server
+{
+    listen [::]:80 ;
+    server_name www.example.com ;
+    
+    location /
+    {
+        root /usr/share/nginx/www ;
+    }
+
+    access_log /var/log/nginx/www.example.com-access.log ;
+    error_log /var/log/nginx/www.example.com-error.log ;
+}</code></pre>
+  </section>
+  <section>
+    <h2>Configuration as reverse proxy</h2>
+       <pre><code>server
+{
+    listen [::]:80 ;
+    server_name www.example.org ;
+
+    location /
+    {
+        proxy_pass http://www.example.com ;
+    }
+
+    access_log /var/log/nginx/www.example.org-access.log ;
+    error_log /var/log/nginx/www.example.org-error.log ;
+}</code></pre>
+  </section>
+  <section>
+    <h2>NGinx command</h2>
+    <pre><code># Control NGinx
+nginx -s stop
+nginx -s quit
+nginx -s reload
+nginx -s reopen
+
+# Verify syntax
+nginx -t
+
+# Informations
+nginx -v 
+nginx -V</code></pre>
+  </section>
+
+</section>
+
+<!--------------------------------------------------
+----------------------------------------------------
+================================================----
+NEW SECTION NEW SECTION NEW SECTION NEW SECTION=----
+================================================----
+----------------------------------------------------
+---------------------------------------------------->
+
+<section>
+    <img data-src="img/ssl.png">
+  <section>
+    <h1>SSL</h1>
+  </section>
+  <section>
+    <h2>Why would I bother ?</h2>
+    <ul>
+      <li class="fragment">Server authentication</li>
+      <li class="fragment">Encrypted data</li>
+      <li class="fragment">Data validation</li>
+    </ul>
+  </section>
+  <section>
+     <h2>Generate SSL key</h2>
+     <pre><code>$ openssl genrsa -des3 -out admin-serv.net.key 2048
+
+Generating RSA private key, 2048 bit long modulus
+...........+++
+.....................................................................................+++
+e is 65537 (0x10001)
+Enter pass phrase for admin-serv.net.key:
+Verifying - Enter pass phrase for admin-serv.net.key:</code></pre>
+  </section>
+  <section>
+     <h2>Generate SSL certificate</h2>
+     <pre><code>$ openssl req -new -key admin-serv.net.key -out admin-serv.net.csr
+
+Enter pass phrase for admin-serv.net.key:
+...
+Country Name (2 letter code) [AU]:FR
+State or Province Name (full name) [Some-State]:Paris
+Locality Name (eg, city) []:Paris
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:Tellier Benoit
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:btellier.com
+Email Address []:benwa@minet.net
+
+Please enter the following 'extra' attributes</code></pre>
+  </section>
+  <section>
+     <h2>Disable password on the key</h2>
+     <pre><code>$ openssl rsa -in admin-serv.net.key -out admin-serv.net.deprotected.key
+
+Enter pass phrase for admin-serv.net.key:
+writing RSA key</code></pre>
+  </section>
+  <section>
+     <h2>Get a certification</h2>
+     <pre><code>$ cat admin-serv.crt rapidssl.ca.crt > certificate.admin-serv.net.crt</code></pre>
+  </section>
+  <section>
+     <h2>Self signature</h2>
+     <pre><code>$ openssl x509 -req -days 365 -in admin-serv.net.csr -signkey admin-serv.net.key -out admin-serv.net.csr 
+
+Signature ok
+subject=/C=FR/ST=Paris/L=Paris/O=Tellier Benoit/CN=btellier.com/emailAddress=benwa@minet.net
+Getting Private key
+Enter pass phrase for admin-serv.net.key:</code></pre>
+  </section>
+  <section>
+     <h2>Use these certificate with NGinx</h2>
+     <pre><code>$ nano /etc/nginx/sites-enabled/any
+
+server {
+    listen 443;
+    server_name admin-serv.net;
+
+    ssl on;
+    ssl_certificate     /etc/nginx/ssl/certificate.admin-serv.net.crt;
+    ssl_certificate_key /etc/nginx/ssl/admin-serv.net.deprotected.key;
+
+    location / {
+        root    /var/www/;
+        index   index.html;
+    }
+}</code></pre>
+  </section>
+</section>
+
+
+<!--------------------------------------------------
+----------------------------------------------------
+================================================----
+NEW SECTION NEW SECTION NEW SECTION NEW SECTION=----
+================================================----
+----------------------------------------------------
+---------------------------------------------------->
+
+<section>
+  <section>
+    <h1>docker compose</h1>
+    <img data-src="img/docker-toolbox.png">
+  </section>
+  <section>
+    <h2>Why docker-compose ?</h2>
+    <img data-src="img/Compose.png" width="200px" height="200px">
+    <p class="fragment">Declare your dependencies between docker containers</p>
+    <p class="fragment">Launch complex applications in one command</p>
+    <div class="fragment"><a href="https://docs.docker.com/compose/">Documentation</a></div>
+  </section>
+  <section>
+    <h2>How does it works ?</h2>
+    <ul>
+      <li class="fregment">Edit a docker-compose.yaml file</li>
+      <li class="fregment">Which containers to deploy ?</li>
+      <li class="fregment">Where you can find their images ?</li>
+      <li class="fregment">Links between containers</li>
+      <li class="fregment">Exposed ports</li>
+      <li class="fregment">Volumes</li>
+      <li class="fregment">On which containers do they depend ?</li>
+    </ul>
+  </section>
+  <section>
+    <pre><code>version: '2'
+services:
+  esn:
+    build: ../../../
+    container_name: esn
+    ports:
+     - "8080:8080"
+    links:
+      - redis
+      - mongo
+      - james
+      - elasticsearch
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  mongo:
+    image: mongo:2.6.5
+    ports:
+      - "27017:27017"
+
+  elasticsearch:
+    image: linagora/esn-elasticsearch:latest
+    ports:
+      - "9200:9200"
+
+  james:
+    image: linagora/james-project:latest
+    container_name: esn_james
+    ports:
+      - "1080:80"
+      - "1025:25"
+      - "1143:143"
+    links:
+      - cassandra:cassandra
+      - elasticsearch:elasticsearch
+    depends_on:
+      - cassandra
+      - elasticsearch
+
+  cassandra:
+    image: cassandra:2.2.3</code></pre>
+  </section>
+</section>
+
+
+<!--------------------------------------------------
+----------------------------------------------------
+================================================----
+NEW SECTION NEW SECTION NEW SECTION NEW SECTION=----
+================================================----
+----------------------------------------------------
+---------------------------------------------------->
+
+
+<section>
+	<h1>Questions ?</h1>
+        <img data-src="img/docker_machine.png" widht=200 height=200>
+</section>
+
+
+
+
+
+
+
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				slideNumber: true,
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+                                
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
