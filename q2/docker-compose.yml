@@ -1,0 +1,24 @@
+version: '2'
+services:
+  revproxy:
+    build: .
+    depends_on:
+     - web
+    links:
+     - web:web
+    ports:
+     - "80:80"
+
+  web:
+    build: ./wp_container
+    command: php -S 0.0.0.0:8000 -t /code/wordpress/
+    links:
+      - db:db
+    depends_on:
+      - db
+    volumes:
+      - .:/wp_container/code
+  db:
+    image: orchardup/mysql
+    environment:
+      MYSQL_DATABASE: wordpress

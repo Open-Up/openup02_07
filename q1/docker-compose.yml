@@ -1,0 +1,17 @@
+version: '2'
+services:
+  web:
+    build: .
+    command: php -S 0.0.0.0:8000 -t /code/wordpress/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - .:/code
+  db:
+    image: 6f1dfabf4769
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_ALLOW_EMPTY_PASSWORD: YES
+
