@@ -10,7 +10,7 @@ services:
     volumes:
       - .:/code
   db:
-    image: 6f1dfabf4769
+    image: mysql:latest
     environment:
       MYSQL_DATABASE: wordpress
       MYSQL_ALLOW_EMPTY_PASSWORD: YES

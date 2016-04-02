@@ -1,0 +1,30 @@
+version: '2'
+services:
+  revproxy:
+    build: .
+    depends_on:
+     - web
+     - apache
+    links:
+     - web:web
+     - apache:apache
+    ports:
+     - "80:80"
+
+  apache:
+    build: ./apache
+
+  web:
+    build: ./wp_container
+    command: php -S 0.0.0.0:8000 -t /code/wordpress/
+    links:
+      - db:db
+    depends_on:
+      - db
+    volumes:
+      - .:/wp_container/code
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_ALLOW_EMPTY_PASSWORD: YES
